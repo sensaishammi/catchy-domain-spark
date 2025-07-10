@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -98,7 +97,7 @@ Output format (respond with exactly this JSON structure):
 
 Generate exactly 10 business name suggestions in this JSON format.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyD2ReWekiBOgaYaaFOqAEe3MrAzSBToxPE`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyD2ReWekiBOgaYaaFOqAEe3MrAzSBToxPE`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,23 +111,32 @@ Generate exactly 10 business name suggestions in this JSON format.`;
         })
       });
 
+      console.log('API Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to generate names');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(`API Error: ${errorData.error?.message || 'Failed to generate names'}`);
       }
 
       const data = await response.json();
+      console.log('API Response data:', data);
+      
       const generatedText = data.candidates[0].content.parts[0].text;
+      console.log('Generated text:', generatedText);
       
       // Parse the JSON response from Gemini
       const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsedResponse = JSON.parse(jsonMatch[0]);
+        console.log('Parsed response:', parsedResponse);
         setGeneratedNames(parsedResponse.names || []);
         toast({
           title: "Names Generated!",
           description: "Here are your millionaire-strategy business names.",
         });
       } else {
+        console.error('No JSON found in response:', generatedText);
         throw new Error('Invalid response format');
       }
     } catch (error) {
